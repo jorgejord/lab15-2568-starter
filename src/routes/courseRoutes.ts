@@ -1,137 +1,176 @@
-import { Router } from "express";
+import { Router, type Request, type Response } from "express";
 import { courses } from "../db/db.js";
 import {
-    zCoursePostBody,
-    zCoursePutBody,
-    zCourseDeleteBody,
+  zCoursePostBody,
+  zCoursePutBody,
+  zCourseDeleteBody,
+  zCourseId,
 } from "../schemas/courseValidator.js";
-import { z } from "zod";
 
-const router = Router();
+const router: Router = Router();
 
-const zCourseIdParam = z.object({
-    courseId: z
-        .string()
-        .regex(/^\d+$/, { message: "Invalid input: expected number" })
-        .transform((val) => Number(val)),
-});
-
-// READ all
-router.get("/:courseId", (req, res) => {
-    const parseResult = zCourseIdParam.safeParse(req.params);
-
-    if (!parseResult.success) {
-        return res.status(400).json({
-        message: "Validation failed",
-        errors: parseResult.error.errors.map((e) => e.message),
-        });
-    }
-
-    const { courseId } = parseResult.data;
-    const course = courses.find((c) => c.courseId === courseId);
-
-    if (!course) {
-        return res.status(404).json({
-        success: false,
-        message: "Course does not exists",
-        });
-    }
-
-    res.json({
-        success: true,
-        message: `Get course ${courseId} successfully`,
-        data: course,
+router.get("/", (req: Request, res: Response) => {
+  try {
+    return res.status(200).json({
+      success: true,
+      message: "Successfully",
+      data: courses,
     });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: "Something is wrong, please try again",
+      error: err,
+    });
+  }
 });
 
-router.post("/", (req, res) => {
-    const parseResult = zCoursePostBody.safeParse(req.body);
+router.get("/:courseId", (req: Request, res: Response) => {
+  try {
+    const courseId = Number(req.params.courseId);
+    const result_validate = zCourseId.safeParse(courseId);
 
-    if (!parseResult.success) {
-        return res.status(400).json({
+    if (!result_validate.success) {
+      return res.status(400).json({
+        success: false,
         message: "Validation failed",
-        errors: parseResult.error.errors.map((e) => e.message),
-        });
+        error: result_validate.error.issues[0]?.message,
+      });
     }
 
-    const newCourse = parseResult.data;
-    const exists = courses.find((c) => c.courseId === newCourse.courseId);
+    const foundIndex = courses.findIndex(c => c.courseId === courseId);
+    if (foundIndex === -1) {
+      return res.status(404).json({
+        success: false,
+        message: "Course does not exist",
+      });
+    }
 
+    res.set("Link", `/courses/${courseId}`);
+    return res.status(200).json({
+      success: true,
+      message: `Get course ${courseId} successfully`,
+      data: courses[foundIndex],
+    });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: "Something is wrong, please try again",
+      error: err,
+    });
+  }
+});
+
+router.post("/", (req: Request, res: Response) => {
+  try {
+    const body = req.body;
+    const parseResult = zCoursePostBody.safeParse(body);
+
+    if (!parseResult.success) {
+      return res.status(400).json({
+        success: false,
+        message: "Validation failed",
+        error: parseResult.error.issues[0]?.message,
+      });
+    }
+
+    const exists = courses.find(c => c.courseId === body.courseId);
     if (exists) {
-        return res.status(409).json({
+      return res.status(409).json({
         success: false,
         message: "Course Id already exists",
-        });
+      });
     }
 
-    courses.push(newCourse);
+    courses.push(body);
+    res.set("Link", `/courses/${body.courseId}`);
 
-    res.status(201).json({
-        success: true,
-        message: `Course ${newCourse.courseId} has been added successfully`,
-        data: newCourse,
+    return res.status(201).json({
+      success: true,
+      message: `Course ${body.courseId} has been added successfully`,
+      data: body,
     });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: "Something is wrong, please try again",
+      error: err,
+    });
+  }
 });
 
-router.put("/", (req, res) => {
-    const parseResult = zCoursePutBody.safeParse(req.body);
+router.put("/", (req: Request, res: Response) => {
+  try {
+    const body = req.body;
+    const parseResult = zCoursePutBody.safeParse(body);
 
     if (!parseResult.success) {
-        return res.status(400).json({
+      return res.status(400).json({
         success: false,
         message: "Validation failed",
-        errors: parseResult.error.errors.map((e) => e.message),
-        });
+        error: parseResult.error.issues[0]?.message,
+      });
     }
 
-    const updateData = parseResult.data;
-    const course = courses.find((c) => c.courseId === updateData.courseId);
-
-    if (!course) {
-        return res.status(404).json({
+    const foundIndex = courses.findIndex(c => c.courseId === body.courseId);
+    if (foundIndex === -1) {
+      return res.status(404).json({
         success: false,
-        message: "Course Id does not exists",
-        });
+        message: "Course Id does not exist",
+      });
     }
 
-    if (updateData.courseTitle) course.courseTitle = updateData.courseTitle;
-    if (updateData.instructors) course.instructors = updateData.instructors;
+    courses[foundIndex] = { ...courses[foundIndex], ...body };
+    res.set("Link", `/courses/${body.courseId}`);
 
-    res.json({
-        success: true,
-        message: `Course ${course.courseId} has been updated successfully`,
-        data: course,
+    return res.status(200).json({
+      success: true,
+      message: `Course ${body.courseId} has been updated successfully`,
+      data: courses[foundIndex],
     });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: "Something is wrong, please try again",
+      error: err,
+    });
+  }
 });
 
-router.delete("/", (req, res) => {
-    const parseResult = zCourseDeleteBody.safeParse(req.body);
+router.delete("/", (req: Request, res: Response) => {
+  try {
+    const body = req.body;
+    const parseResult = zCourseDeleteBody.safeParse(body);
 
     if (!parseResult.success) {
-        return res.status(400).json({
+      return res.status(400).json({
         success: false,
         message: "Validation failed",
-        errors: parseResult.error.errors.map((e) => e.message),
-        });
+        error: parseResult.error.issues[0]?.message,
+      });
     }
 
-    const { courseId } = parseResult.data;
-    const index = courses.findIndex((c) => c.courseId === courseId);
-
-    if (index === -1) {
-        return res.status(404).json({
+    const foundIndex = courses.findIndex(c => c.courseId === body.courseId);
+    if (foundIndex === -1) {
+      return res.status(404).json({
         success: false,
-        message: "Course Id does not exists",
-        });
+        message: "Course Id does not exist",
+      });
     }
 
-    const deletedCourse = courses.splice(index, 1)[0];
+    courses.splice(foundIndex, 1);
 
-    res.json({
-        success: true,
-        message: `Course ${deletedCourse.courseId} has been deleted successfully`,
-        data: deletedCourse,
+    return res.status(200).json({
+      success: true,
+      message: `Course ${body.courseId} has been deleted successfully`,
     });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: "Something is wrong, please try again",
+      error: err,
+    });
+  }
 });
 
 export default router;

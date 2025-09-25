@@ -2,6 +2,7 @@ import express from "express";
 import morgan from 'morgan';
 import studentRoutes from "./routes/studentRoutes.js";
 import courseRoutes from "./routes/courseRoutes.js";
+import express, { Request, Response } from "express";
 
 const app: any = express();
 
@@ -12,7 +13,7 @@ app.use(morgan('dev'));
 app.use("/api/v2/students", studentRoutes);
 app.use("/api/v2/courses", courseRoutes);
 
-app.get("/me", (req, res) => {
+app.get("/me", (req: Request, res: Response) => {
   res.json({
     success: true,
     message: "Student Information",
