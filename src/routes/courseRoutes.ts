@@ -1,9 +1,19 @@
-import { Router, Request, Response } from "express";
+import express from "express";
 import { courses } from "../db/db.js";
-import { zCoursePostBody, zCoursePutBody, zCourseDeleteBody, zCourseId } from "../schemas/courseValidator.js";
+import {
+  zCoursePostBody,
+  zCoursePutBody,
+  zCourseDeleteBody,
+  zCourseId,
+} from "../schemas/courseValidator.js";
+import type { Request, Response } from "express"; // 👈 เพิ่มตรงนี้
 
-const router = Router();
+const router = express.Router();
 
+// ... โค้ดเดิมไม่ต้องแก้ (แค่เปลี่ยน import ด้านบนพอ)
+
+
+// GET all courses
 router.get("/", (req: Request, res: Response) => {
   try {
     return res.status(200).json({
@@ -12,14 +22,11 @@ router.get("/", (req: Request, res: Response) => {
       data: courses,
     });
   } catch (err) {
-    return res.status(500).json({
-      success: false,
-      message: "Something went wrong",
-      error: err,
-    });
+    return res.status(500).json({ success: false, message: "Something went wrong", error: err });
   }
 });
 
+// GET course by id
 router.get("/:courseId", (req: Request, res: Response) => {
   try {
     const courseId = Number(req.params.courseId);
@@ -29,11 +36,11 @@ router.get("/:courseId", (req: Request, res: Response) => {
       return res.status(400).json({
         success: false,
         message: "Validation failed",
-        errors: parseResult.error.issues.map(e => e.message),
+        errors: parseResult.error.issues.map((e) => e.message),
       });
     }
 
-    const course = courses.find(c => c.courseId === courseId);
+    const course = courses.find((c) => c.courseId === courseId);
     if (!course) {
       return res.status(404).json({ success: false, message: "Course does not exist" });
     }
@@ -48,6 +55,7 @@ router.get("/:courseId", (req: Request, res: Response) => {
   }
 });
 
+// POST new course
 router.post("/", (req: Request, res: Response) => {
   try {
     const parseResult = zCoursePostBody.safeParse(req.body);
@@ -55,12 +63,12 @@ router.post("/", (req: Request, res: Response) => {
       return res.status(400).json({
         success: false,
         message: "Validation failed",
-        errors: parseResult.error.issues.map(e => e.message),
+        errors: parseResult.error.issues.map((e) => e.message),
       });
     }
 
     const newCourse = parseResult.data;
-    const exists = courses.find(c => c.courseId === newCourse.courseId);
+    const exists = courses.find((c) => c.courseId === newCourse.courseId);
     if (exists) {
       return res.status(409).json({ success: false, message: "Course Id already exists" });
     }
@@ -77,6 +85,7 @@ router.post("/", (req: Request, res: Response) => {
   }
 });
 
+// PUT update course
 router.put("/", (req: Request, res: Response) => {
   try {
     const parseResult = zCoursePutBody.safeParse(req.body);
@@ -84,12 +93,12 @@ router.put("/", (req: Request, res: Response) => {
       return res.status(400).json({
         success: false,
         message: "Validation failed",
-        errors: parseResult.error.issues.map(e => e.message),
+        errors: parseResult.error.issues.map((e) => e.message),
       });
     }
 
     const updateData = parseResult.data;
-    const course = courses.find(c => c.courseId === updateData.courseId);
+    const course = courses.find((c) => c.courseId === updateData.courseId);
     if (!course) {
       return res.status(404).json({ success: false, message: "Course Id does not exist" });
     }
@@ -107,6 +116,7 @@ router.put("/", (req: Request, res: Response) => {
   }
 });
 
+// DELETE course
 router.delete("/", (req: Request, res: Response) => {
   try {
     const parseResult = zCourseDeleteBody.safeParse(req.body);
@@ -114,12 +124,12 @@ router.delete("/", (req: Request, res: Response) => {
       return res.status(400).json({
         success: false,
         message: "Validation failed",
-        errors: parseResult.error.issues.map(e => e.message),
+        errors: parseResult.error.issues.map((e) => e.message),
       });
     }
 
     const { courseId } = parseResult.data;
-    const index = courses.findIndex(c => c.courseId === courseId);
+    const index = courses.findIndex((c) => c.courseId === courseId);
     if (index === -1) {
       return res.status(404).json({ success: false, message: "Course Id does not exist" });
     }

@@ -9,7 +9,9 @@ const zFirstName = z
 const zLastName = z
   .string()
   .min(3, { message: "Last name requires at least 3 characters" });
-const zProgram = z.enum(["CPE","ISNE"], {message: "Program must be either CPE or ISNE",});
+const zProgram = z.enum(["CPE", "ISNE"], {
+  message: "Program must be either CPE or ISNE",
+});
 const zCourse = z.array(z.number());
 
 export const zStudentPostBody = z.object({
@@ -17,16 +19,18 @@ export const zStudentPostBody = z.object({
   firstName: zFirstName,
   lastName: zLastName,
   program: zProgram,
-  courses :zCourse.nullish()
+  courses: zCourse.nullish(),
 });
 
 export const zStudentPutBody = z.object({
   studentId: zStudentId,
-  firstName: zFirstName.nullish(), //firstName can be null or undefined
-  lastName: zLastName.nullish(), //lastName can be null or undefined
-  program: zProgram.nullish(), //program can be null or undefined
+  firstName: zFirstName.nullish(),
+  lastName: zLastName.nullish(),
+  program: zProgram.nullish(),
 });
 
 export const zStudentDeleteBody = z.object({
-  studentId: zStudentId
+  studentId: zStudentId,
 });
+
+export { zStudentId };
