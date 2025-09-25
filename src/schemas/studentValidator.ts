@@ -17,7 +17,7 @@ export const zStudentPostBody = z.object({
   firstName: zFirstName,
   lastName: zLastName,
   program: zProgram,
-  course :zCourse.nullish()
+  courses :zCourse.nullish()
 });
 
 export const zStudentPutBody = z.object({
