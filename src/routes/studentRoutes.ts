@@ -1,4 +1,4 @@
-import { Router, type Request, type Response } from "express";
+import { Router, Request, Response } from "express";
 import { students, courses } from "../db/db.js";
 import { zStudentId } from "../schemas/studentValidator.js";
 
@@ -7,48 +7,39 @@ const router = Router();
 router.get("/:studentId/courses", (req: Request, res: Response) => {
   try {
     const studentId = req.params.studentId;
-    const result_validate = zStudentId.safeParse(studentId);
+    const parseResult = zStudentId.safeParse(studentId);
 
-    if (!result_validate.success) {
+    if (!parseResult.success) {
       return res.status(400).json({
         success: false,
         message: "Validation failed",
-        error: result_validate.error.issues[0]?.message,
+        errors: parseResult.error.issues.map(e => e.message),
       });
     }
 
-    const foundIndex = students.findIndex(s => s.studentId === studentId);
-    if (foundIndex === -1) {
-      return res.status(404).json({
-        success: false,
-        message: "Student does not exist",
-      });
+    const student = students.find(s => s.studentId === studentId);
+    if (!student) {
+      return res.status(404).json({ success: false, message: "Student does not exist" });
     }
 
-    res.set("Link", `/students/${studentId}/courses`);
-
-    let courses_filter: { courseId: number; courseTitle: string }[] = [];
-    const studentCourses = students[foundIndex].courses;
-    if (studentCourses && studentCourses.length > 0) {
-      courses_filter = courses
-        .filter(c => studentCourses.includes(c.courseId))
-        .map(c => ({ courseId: c.courseId, courseTitle: c.courseTitle }));
-    }
+    const studentCourses = student.courses?.map(cid => {
+      const course = courses.find(c => c.courseId === cid);
+      return {
+        courseId: cid,
+        courseTitle: course ? course.courseTitle : "Unknown",
+      };
+    }) || [];
 
     return res.status(200).json({
       success: true,
       message: `Get courses detail of student ${studentId}`,
       data: {
         studentId,
-        courses: courses_filter,
+        courses: studentCourses,
       },
     });
   } catch (err) {
-    return res.status(500).json({
-      success: false,
-      message: "Something is wrong, please try again",
-      error: err,
-    });
+    return res.status(500).json({ success: false, message: "Something went wrong", error: err });
   }
 });
 
