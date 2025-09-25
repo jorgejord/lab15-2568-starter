@@ -10,10 +10,6 @@ import type { Request, Response } from "express"; // 👈 เพิ่มตร�
 
 const router = express.Router();
 
-// ... โค้ดเดิมไม่ต้องแก้ (แค่เปลี่ยน import ด้านบนพอ)
-
-
-// GET all courses
 router.get("/", (req: Request, res: Response) => {
   try {
     return res.status(200).json({
@@ -26,7 +22,6 @@ router.get("/", (req: Request, res: Response) => {
   }
 });
 
-// GET course by id
 router.get("/:courseId", (req: Request, res: Response) => {
   try {
     const courseId = Number(req.params.courseId);
@@ -55,7 +50,6 @@ router.get("/:courseId", (req: Request, res: Response) => {
   }
 });
 
-// POST new course
 router.post("/", (req: Request, res: Response) => {
   try {
     const parseResult = zCoursePostBody.safeParse(req.body);
@@ -85,7 +79,6 @@ router.post("/", (req: Request, res: Response) => {
   }
 });
 
-// PUT update course
 router.put("/", (req: Request, res: Response) => {
   try {
     const parseResult = zCoursePutBody.safeParse(req.body);
@@ -116,7 +109,6 @@ router.put("/", (req: Request, res: Response) => {
   }
 });
 
-// DELETE course
 router.delete("/", (req: Request, res: Response) => {
   try {
     const parseResult = zCourseDeleteBody.safeParse(req.body);
