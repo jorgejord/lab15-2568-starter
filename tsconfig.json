@@ -1,12 +1,13 @@
 {
   "compilerOptions": {
-    /* Base Options: */
+    /* Base Options */
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "target": "es2022",
     "allowJs": true,
     "resolveJsonModule": true,
-    "moduleDetection": "force",
     "isolatedModules": true,
     "verbatimModuleSyntax": true,
 
@@ -15,12 +16,13 @@
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,
 
-    /* If transpiling with TypeScript: */
-    "module": "NodeNext",
+    /* Output control */
+    "rootDir": "src",
     "outDir": "dist",
     "sourceMap": true,
 
-    /* If your code doesn't run in the DOM: */
+    /* Libs */
     "lib": ["es2022"]
-  }
+  },
+  "include": ["src"]
 }
