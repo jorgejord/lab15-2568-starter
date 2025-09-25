@@ -44,15 +44,6 @@ router.get("/:courseId", (req, res) => {
     });
 });
 
-// Params URL 
-router.get("/", (req, res) => {
-  res.json({
-    success: true,
-    message: "Get all courses successfully",
-    data: courses,
-  });
-});
-
 router.post("/", (req, res) => {
     const parseResult = zCoursePostBody.safeParse(req.body);
 
